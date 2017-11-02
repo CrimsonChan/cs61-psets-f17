@@ -86,6 +86,12 @@ void kernel(const char* command) {
     console_clear();
     timer_init(HZ);
 
+    // mapping memory from the beginning of base memory to the start of the processes
+    virtual_memory_map(kernel_pagetable, 0, 0, (size_t) PROC_START_ADDR, PTE_P | PTE_W, NULL);
+
+    // memory map to give console its own page, accessible to processes
+    virtual_memory_map(kernel_pagetable, (uintptr_t) console, (uintptr_t) console, PAGESIZE, PTE_P | PTE_W | PTE_U, NULL);
+
     // Set up process descriptors
     memset(processes, 0, sizeof(processes));
     for (pid_t i = 0; i < NPROC; i++) {
@@ -105,6 +111,29 @@ void kernel(const char* command) {
 
     // Switch to the first process using run()
     run(&processes[1]);
+}
+
+uintptr_t find_free_page(void)
+{
+    // loop through page info array to find free page
+    for (int i = 0; i < PAGENUMBER(MEMSIZE_PHYSICAL); ++i)
+    {
+        if (pageinfo[i].refcount == 0)
+        {
+            // return the physical address of the free page
+            return PAGEADDRESS(i);
+        }
+    }
+    // no free pages found if it exits the loop
+    return -1;
+}
+
+// pagetable is an array of pageentry's
+x86_64_pagetable* copy_pagetable(x86_64_pagetable* pagetable, int8_t owner)
+{
+
+
+    virtual_memory_map(pagetable, )
 }
 
 
